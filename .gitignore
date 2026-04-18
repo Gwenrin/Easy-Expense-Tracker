@@ -1,0 +1,22 @@
+# ASP.NET Core
+bin/
+obj/
+wwwroot/
+
+# Rider
+.idea/
+
+# Visual Studio for Mac
+.vs/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.userprefs
