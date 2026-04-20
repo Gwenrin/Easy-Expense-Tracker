@@ -1,4 +1,5 @@
-#Easy Expense Tracker (In progress)
+# Easy Expense Tracker (In progress)
+
 Over 50% of young people have some kind of loan. The problem lies in the system. 
 We can see more and more subscription plans, Pay After services, credit cards over debit cards.
 
