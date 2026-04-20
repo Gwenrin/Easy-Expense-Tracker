@@ -1,0 +1,135 @@
+﻿@page "/transactions"
+@rendermode InteractiveServer
+@using EasyExpenseTracker.Data
+@using EasyExpenseTracker.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Transactions</PageTitle>
+
+<h1>Transactions</h1>
+
+<EditForm Model="newTransaction" OnValidSubmit="AddTransaction" FormName="AddTransactionForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Date</label>
+        <InputDate @bind-Value="newTransaction.TransactionDate" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Amount</label>
+        <InputNumber @bind-Value="newTransaction.Amount" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Title</label>
+        <InputText @bind-Value="newTransaction.Title" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <InputText @bind-Value="newTransaction.Description" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Category</label>
+        <InputText @bind-Value="newTransaction.Category" class="form-control" />
+    </div>
+
+    <div class="form-check mb-2">
+        <InputCheckbox @bind-Value="newTransaction.IsIncome" class="form-check-input" />
+        <label class="form-check-label">Is income</label>
+    </div>
+
+    <div class="form-check mb-3">
+        <InputCheckbox @bind-Value="newTransaction.IsFixedCost" class="form-check-input" />
+        <label class="form-check-label">Is fixed cost</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add transaction</button>
+</EditForm>
+
+<hr />
+
+<h3>Saved transactions</h3>
+
+@if (transactions.Count == 0)
+{
+    <p>No transactions yet.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Income</th>
+                <th>Fixed</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in transactions)
+            {
+                <tr>
+                    <td>@item.TransactionDate</td>
+                    <td>@item.Amount</td>
+                    <td>@item.Title</td>
+                    <td>@item.Category</td>
+                    <td>@item.IsIncome</td>
+                    <td>@item.IsFixedCost</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private TransactionFormModel newTransaction { get; set; } = new();
+    private List<BankTransaction> transactions = new();
+    private string userId = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+
+        transactions = await Db.BankTransactions
+            .Where(t => t.UserId == userId)
+            .OrderByDescending(t => t.TransactionDate)
+            .ToListAsync();
+    }
+
+    private async Task AddTransaction()
+    {
+        var entity = new BankTransaction
+        {
+            TransactionDate = newTransaction.TransactionDate,
+            Amount = newTransaction.Amount,
+            Title = newTransaction.Title,
+            Description = newTransaction.Description,
+            Category = newTransaction.Category,
+            IsIncome = newTransaction.IsIncome,
+            IsFixedCost = newTransaction.IsFixedCost,
+            UserId = userId
+        };
+
+        Db.BankTransactions.Add(entity);
+        await Db.SaveChangesAsync();
+
+        newTransaction = new TransactionFormModel();
+
+        transactions = await Db.BankTransactions
+            .Where(t => t.UserId == userId)
+            .OrderByDescending(t => t.TransactionDate)
+            .ToListAsync();
+    }
+}

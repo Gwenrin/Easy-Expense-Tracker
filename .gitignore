@@ -20,3 +20,8 @@ wwwroot/
 *.userosscache
 *.suo
 *.userprefs
+
+.env
+secrets.local.json
+bin/
+obj/
